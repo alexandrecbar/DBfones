@@ -1,16 +1,18 @@
 package executaveis;
 
-import java.sql.Statement;
-
 import entidades.Conexao;
 
 public class Inicio {
 
 	public static void main(String[] args) {
-	
+
+//		int linhas;
 		Conexao conexao = new Conexao();
+//		linhas = conexao.inserir();
+//		System.out.println("Registro(s) inserido(s): " + linhas);
 		
-		Statement consulta  = conexao.createStatement();
+		
+		System.out.println(conexao.superId());
 
 	}
 
