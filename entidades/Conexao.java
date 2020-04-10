@@ -3,7 +3,6 @@ package entidades;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +34,7 @@ public class Conexao {
 	}
 
 	public int inserir() {
-		int linhas = 0;
+
 		Scanner teclado = new Scanner(System.in);
 		System.out.print("==== NOVO REGISTRO ====\n");
 		System.out.print("Nome: ");
@@ -44,7 +43,7 @@ public class Conexao {
 		int numero = teclado.nextInt();
 		int id = gerarId();
 
-		// Fone fone = new Fone(id, nome, numero);
+		int linhas = 0;
 		try {
 			PreparedStatement sql = sessao.prepareStatement(
 					"insert into fones " + "(id, nome, numero) " + "VALUES " + "(?,?, ?)",
@@ -57,17 +56,124 @@ public class Conexao {
 			linhas = sql.executeUpdate();
 
 		} catch (SQLException e) {
-			System.out.println(e);
+			e.printStackTrace();
+
 		}
 		teclado.close();
 		return linhas;
+
 	}
 
-	public int gerarId() {
+	public int editar() {
+
+		int linhas = 0;
+		Scanner pegaLinha = new Scanner(System.in);
+		Scanner pegaNumero = new Scanner(System.in);
+		System.out.println("Informe o nome do registro a ser modificado: ");
+		String resposta = pegaLinha.nextLine();
+
+		try {
+
+			PreparedStatement sql = sessao.prepareStatement("select  * from fones where nome = ?",
+					Statement.RETURN_GENERATED_KEYS);
+
+			sql.setString(1, resposta);
+
+			ResultSet tabela = sql.executeQuery().getStatement().getResultSet();
+
+			tabela.next();
+
+			System.out.println(tabela.getInt(1) + " ," + tabela.getString(2) + " ," + tabela.getInt(3));
+
+			Fone fone = new Fone(tabela.getInt(1), tabela.getString(2), tabela.getInt(3));
+
+			System.out.println("Comprovacao da criacao do objeto: " + fone);
+
+			System.out.print("Informe o campo a ser editado [1] Nome ou [2] Numero");
+
+			int opcao = pegaNumero.nextInt();
+
+			switch (opcao) {
+
+			case 1:
+
+				System.out.print("Novo nome: ");
+				String resposta2 = pegaLinha.nextLine();
+				PreparedStatement updateNome = sessao.prepareStatement(
+						"update fones " + "set nome = ? " + "where nome = ?", Statement.RETURN_GENERATED_KEYS);
+				updateNome.setString(1, resposta2);
+				updateNome.setString(2, resposta);
+				linhas = updateNome.executeUpdate();
+				break;
+
+			case 2:
+
+				System.out.println("Novo numero: ");
+				int novoNumero = pegaNumero.nextInt();
+				PreparedStatement updateNumero = sessao.prepareStatement(
+						"update fones " + "set numero = ? " + "where nome = ?", Statement.RETURN_GENERATED_KEYS);
+				updateNumero.setInt(1, novoNumero);
+				updateNumero.setString(2, resposta);
+				linhas = updateNumero.executeUpdate();
+				break;
+
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+
+		}
+		pegaLinha.close();
+		pegaNumero.close();
+		return linhas;
+	}
+
+	public int deletar() {
+
+		int linhas = 0;
+		Scanner pegaLinha = new Scanner(System.in);
+		System.out.println("Informe o nome do registro a ser deletato: ");
+		String resposta = pegaLinha.nextLine();
+
+		try {
+
+			PreparedStatement sql = sessao.prepareStatement("delete from fones where nome = ?",
+					Statement.RETURN_GENERATED_KEYS);
+
+			sql.setString(1, resposta);
+
+			linhas = sql.executeUpdate();
+
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+
+		pegaLinha.close();
+		return linhas;
+	}
+
+	public void listar() {
+
+		try {
+			Statement sql = sessao.createStatement();
+			ResultSet resultado = sql.executeQuery("select * from fones").getStatement().getResultSet();
+			while (resultado.next()) {
+
+				System.out.println(
+						"Id: " + resultado.getInt(1)+ ", " + "Nome: " + resultado.getString(2) + ", " + "Numero: " + resultado.getInt(3));
+
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private int gerarId() {
 
 		Calendar auxData = Calendar.getInstance();
-		
-		System.out.println(auxData);
 
 		int auxHoraInt = auxData.get(Calendar.HOUR_OF_DAY);
 		String auxHoraStr = String.format("%02d", auxHoraInt);
@@ -83,24 +189,8 @@ public class Conexao {
 
 		String auxDataStr = auxHoraStr + auxMinStr + auxSecStr + auxMilStr;
 
-//		Sting auxHora = Integer.toString(auxData.get(Calendar.HOUR));
-
-//		String auxString = Integer.toString(auxData.get(Calendar.HOUR)) + Integer.toString(auxData.get(Calendar.MINUTE))
-//				+ Integer.toString(auxData.get(Calendar.SECOND)) + Integer.toString(auxData.get(Calendar.MILLISECOND));
-	
-
 		return Integer.parseInt(auxDataStr);
 
 	}
 
-	public int superId() {
-		
-		Calendar aux = Calendar.getInstance();
-		
-		System.out.println(aux.getTime());
-		
-		return 0;
-	}
-	
-	
 }
